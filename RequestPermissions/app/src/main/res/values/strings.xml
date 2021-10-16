@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">RequestPermissions</string>
+    <string name="granted">Granted</string>
+    <string name="denied">Denied</string>
 </resources>
