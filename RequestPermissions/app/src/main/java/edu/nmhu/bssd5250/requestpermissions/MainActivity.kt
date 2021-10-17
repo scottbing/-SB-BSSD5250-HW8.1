@@ -24,29 +24,10 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
 
-    lateinit var infoText:TextView
+    private lateinit var infoText:TextView
     private lateinit var permissions:Array<String>
+    private lateinit var funs:Array<Unit>
 
-    val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permission is granted. Continue the action or workflow in your
-            // app.
-            infoText.text = getString(R.string.granted)
-            arrayOf(
-                openCamera(),
-                sendSMS(),
-                placeCall()
-            )
-        } else {
-            // Explain to the user that the feature is unavailable because the
-            // features requires a permission that the user has denied. At the
-            // same time, respect the user's decision. Don't link to system
-            // settings in an effort to convince the user to change their
-            // decision.
-            infoText.text = getString(R.string.denied)
-        }
-    }
 
     private val requestMultiplePermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions() ) { permissions ->
@@ -72,12 +53,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 if(it.value) {
                     currText ="$currText = Granted."
-                    if(isCam){
-                    }
-                    if(isSms){
-                    }
-                    if(isCal){
-                    }
+                    if(isCam) openCamera()
+                    if(isSms) sendSMS()
+                    if(isCal) makeCall()
                 } else {
                     currText = "$currText = Denied."
                 }
@@ -93,18 +71,20 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Manifest.permission.CAMERA,
             Manifest.permission.SEND_SMS,
             Manifest.permission.CALL_PHONE
-            )
+        )
 
-
-//        readMotion() //TODO: delete this after proving steps work
-//        readRotation() //TODO: delete this after proving steps work
+        this.funs = arrayOf : Unit(
+            this::openCamera,
+            this::sendSMS,
+            this::makeCall
+        )
 
         infoText = TextView(this).apply {
             hint="Click the button"
         }
 
         val accessButton = Button(this ).apply {
-            text = "Access the Apps"
+            text = context.getString(R.string.access_to_apps)
             setOnClickListener {
                 permissions.forEach {
                     when {
@@ -112,15 +92,23 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                             applicationContext,
                             Manifest.permission.CAMERA
                         ) == PackageManager.PERMISSION_GRANTED -> {
-                            arrayOf(
-                                openCamera(),
-                                sendSMS(),
-                                placeCall()
-                            )
+                            openCamera()
                         }
-                        shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+                        ContextCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.SEND_SMS
+                        ) == PackageManager.PERMISSION_GRANTED -> {
+                            sendSMS()
+                        }
+                        ContextCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.CALL_PHONE
+                        ) == PackageManager.PERMISSION_GRANTED -> {
+                            makeCall()
+                        }
+                        shouldShowRequestPermissionRationale(it) -> {
                             AlertDialog.Builder(context).apply {
-                                setTitle(it.substringAfterLast(".").toString())
+                                setTitle(it.substringAfterLast("."))
                                 setMessage("You must allow the" + it.substringAfterLast(".").toString() + "permissions to use this feature. Ask Again?")
                                 setPositiveButton("Yes") {_, _ ->
                                     requestMultiplePermissionLauncher.launch(
@@ -145,11 +133,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                             )
                         }
                     }
-
                 }
-                
             }
-            
         }
         val mainLayout = LinearLayoutCompat(this).apply {
             orientation = LinearLayoutCompat.VERTICAL
@@ -175,7 +160,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         startActivity(smsIntent)
     }
 
-    private fun placeCall(){
+    private fun makeCall(){
         val callIntent = Intent(Intent.ACTION_DIAL)
         startActivity(callIntent)
     }
