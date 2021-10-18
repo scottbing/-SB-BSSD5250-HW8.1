@@ -72,12 +72,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Manifest.permission.SEND_SMS,
             Manifest.permission.CALL_PHONE
         )
-
-        this.funs = arrayOf : Unit(
-            this::openCamera,
-            this::sendSMS,
-            this::makeCall
-        )
+        
+        val funs: Array<() -> Unit> =
+            arrayOf(
+                ::openCamera,
+                ::sendSMS,
+                ::makeCall
+            )
 
         infoText = TextView(this).apply {
             hint="Click the button"
@@ -90,21 +91,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     when {
                         ContextCompat.checkSelfPermission(
                             applicationContext,
-                            Manifest.permission.CAMERA
+                            it
                         ) == PackageManager.PERMISSION_GRANTED -> {
-                            openCamera()
-                        }
-                        ContextCompat.checkSelfPermission(
-                            applicationContext,
-                            Manifest.permission.SEND_SMS
-                        ) == PackageManager.PERMISSION_GRANTED -> {
-                            sendSMS()
-                        }
-                        ContextCompat.checkSelfPermission(
-                            applicationContext,
-                            Manifest.permission.CALL_PHONE
-                        ) == PackageManager.PERMISSION_GRANTED -> {
-                            makeCall()
+                            funs.forEach { function ->
+                                function()
+                            }
                         }
                         shouldShowRequestPermissionRationale(it) -> {
                             AlertDialog.Builder(context).apply {
